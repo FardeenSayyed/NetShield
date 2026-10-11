@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "NetShield Native VPN & Protection Engine Architecture",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "ui-and-state",
+        "label": "UI & State Management",
+        "focus": ["ui", "vm", "db"],
+        "note": "Compose UI interacts with StateFlow ViewModel backed by Room DB v5 persistence."
+      },
+      {
+        "id": "packet-processing",
+        "label": "TUN & DNS Packet Engine",
+        "focus": ["vpn_service", "tun_mgr", "packet_engine", "dns_cache", "net_fallback"],
+        "note": "Raw IP/UDP packets read from TUN interface, checked against LRU RAM cache, and forwarded via physical networks."
+      },
+      {
+        "id": "security-filtering",
+        "label": "Security & Firewall Filtering",
+        "focus": ["packet_engine", "firewall", "blocklist"],
+        "note": "Per-app firewall UID lookup and Reverse Trie domain matching for immediate NXDOMAIN sinkholing."
+      }
+    ]
+  },
+  "components": [
+    { "id": "ui", "type": "frontend", "label": "MainAppScreen", "sublabel": "Compose UI Dashboard", "pos": [40, 260], "size": [140, 60] },
+    { "id": "vm", "type": "frontend", "label": "AppListViewModel", "sublabel": "StateFlow & Timer", "pos": [260, 260], "size": [150, 60] },
+    { "id": "db", "type": "database", "label": "Room DB v5", "sublabel": "NetShieldDatabase", "pos": [260, 100], "size": [150, 60], "tag": "SQLite Vault" },
+    { "id": "vpn_service", "type": "backend", "label": "NetShieldVpnService", "sublabel": "Foreground Service", "pos": [500, 260], "size": [150, 60] },
+    { "id": "tun_mgr", "type": "cloud", "label": "VpnTunnelManager", "sublabel": "TUN 10.0.0.1/32", "pos": [500, 100], "size": [150, 60] },
+    { "id": "packet_engine", "type": "backend", "label": "DnsPacketEngine", "sublabel": "Binary Packet Parser", "pos": [740, 260], "size": [150, 60] },
+    { "id": "dns_cache", "type": "database", "label": "DnsCache (RAM)", "sublabel": "LRU <1ms Hit", "pos": [740, 100], "size": [150, 60], "tag": "0 Radio Power" },
+    { "id": "firewall", "type": "security", "label": "FirewallEngine", "sublabel": "UidLookup (API 31+)", "pos": [740, 420], "size": [150, 60] },
+    { "id": "blocklist", "type": "security", "label": "NetShieldBlocklist", "sublabel": "O(k) Reverse Trie", "pos": [980, 260], "size": [150, 60] },
+    { "id": "net_fallback", "type": "external", "label": "Physical Network", "sublabel": "Wi-Fi / Mobile DNS", "pos": [980, 100], "size": [150, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "NetShield Application Process (io.netshield.app)", "wraps": ["ui", "vm", "db", "vpn_service", "tun_mgr", "packet_engine", "dns_cache", "firewall", "blocklist"] },
+    { "kind": "security-group", "label": "Kernel TUN & Packet Boundary", "wraps": ["tun_mgr", "packet_engine", "firewall"] }
+  ],
+  "connections": [
+    { "id": "ui-vm", "from": "ui", "to": "vm", "label": "Events", "labelDy": -20 },
+    { "id": "vm-db", "from": "vm", "to": "db", "label": "Observe & Persist", "fromSide": "top", "toSide": "bottom" },
+    { "id": "vm-service", "from": "vm", "to": "vpn_service", "label": "Rules Broadcast", "labelDy": -20 },
+    { "id": "service-tun", "from": "vpn_service", "to": "tun_mgr", "label": "establish()", "fromSide": "top", "toSide": "bottom" },
+    { "id": "service-engine", "from": "vpn_service", "to": "packet_engine", "label": "TUN Stream", "labelDy": -20 },
+    { "id": "engine-cache", "from": "packet_engine", "to": "dns_cache", "label": "LRU lookup", "fromSide": "top", "toSide": "bottom", "labelDx": -30 },
+    { "id": "engine-firewall", "from": "packet_engine", "to": "firewall", "label": "UID check", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "engine-blocklist", "from": "packet_engine", "to": "blocklist", "label": "Trie match", "variant": "security", "fromSide": "right", "toSide": "left", "labelDy": -20 },
+    { "id": "engine-net", "from": "packet_engine", "to": "net_fallback", "label": "DatagramSocket", "fromSide": "top", "toSide": "left" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "User Interface & State",
+      "items": [
+        "Material 3 Jetpack Compose dashboard with dual tabs",
+        "AppListViewModel with active duration timer",
+        "Room DB v5 for custom rules, stats, and app settings"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Local TUN & Engine",
+      "items": [
+        "Virtual TUN interface at 10.0.0.1/32",
+        "In-memory binary DNS packet parsing on Port 53/853",
+        "Zero-CPU CountDownLatch Doze wait thread",
+        "RAM LRU DNS Cache serving repeat queries in <1ms"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Security & Filtering",
+      "items": [
+        "O(k) Reverse Label Trie domain matching",
+        "Custom Domain Rules evaluated at Priority 1",
+        "Per-app firewall resolving socket owner UIDs",
+        "Push notification fast-path (FCM / WhatsApp)"
+      ]
+    }
+  ]
+}
