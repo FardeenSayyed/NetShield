@@ -21,10 +21,37 @@ NetShield runs **entirely on your phone**. All DNS packet parsing, $O(k)$ Revers
 
 ---
 
+## 📥 Installation & Setup Guide
+
+### Step 1: Download & Install the APK
+1. Download `NetShield-v1.0.0.apk` from the **[GitHub Releases Page](https://github.com/FardeenSayyed/NetShield/releases)**.
+2. Tap the downloaded `.apk` file to install.
+3. If Google Play Protect shows a popup (*Unrecognized Developer / Blocked by Play Protect*):
+   - Tap the **down arrow ( More details )**.
+   - Tap **Install anyway**.
+
+### Step 2: Enable Always-On Protection & Unrestricted Battery
+To ensure Android does not automatically turn off NetShield during overnight battery optimization (Doze mode):
+1. **Always-On VPN**:
+   - Go to **Settings → Network & Internet → VPN**.
+   - Tap the **gear icon ⚙️** next to **NetShield**.
+   - Turn on **Always-on VPN**.
+2. **Unrestricted Battery Saver**:
+   - Go to **Settings → Apps → NetShield → Battery**.
+   - Select **Unrestricted** (or *Allow background usage*).
+
+---
+
+## ℹ️ Ad Blocking Scope & Transparency Note
+- **What NetShield Blocks**: NetShield blocks 100% of **3rd-party ad networks, tracking domains, pop-ups, mobile gaming ad SDKs** (Unity, ironSource, AppLovin, Pangle), **telemetry, adult websites, porn comics, and NSFW AI chat platforms** across all apps and browsers.
+- **First-Party Video Stream Ads (YouTube, Instagram, Spotify)**: NetShield does **not** block ads that are stitched directly inside first-party video/audio streams on apps like YouTube, Instagram, or Spotify. Blocking the video stream domains (`googlevideo.com` / `cdninstagram.com`) would break main video playback and cause the apps to fail.
+
+---
+
 ## ✨ Key Features
 
 - ⚡ **100% Native Architecture**: Written in pure Kotlin and Android standard library (`VpnService`, `FileInputStream`, `FileOutputStream`, `DatagramSocket`) with zero 3rd-party C++ native binaries or SDKs.
-- 🛡️ **$O(k)$ Reverse Label Trie Domain Matching**: High-speed reverse trie data structure sinkholing ads, trackers, mobile gaming ad SDKs (Unity, ironSource, AppLovin, Pangle), and adult platforms in < 1ms.
+- 🛡️ **$O(k)$ Reverse Label Trie Domain Matching**: High-speed reverse trie data structure sinkholing ads, trackers, mobile gaming ad SDKs, and adult platforms in < 1ms.
 - 🔋 **Ultra-Low Battery & Doze Efficiency**: In-memory LRU DNS Cache (`DnsCache`) plus a zero-CPU `CountDownLatch` wait loop, dropping idle battery drain to ~1-2%.
 - 📱 **Per-App Internet Firewall**: Identifies socket owner UIDs (`ConnectivityManager.getConnectionOwnerUid`) and issues immediate `NXDOMAIN` rejections for internet-blocked packages.
 - 🔔 **Push Notification Fast-Path**: Direct fast-path routing for Firebase Cloud Messaging (`mtalk.google.com`, `android.googleapis.com`) and WhatsApp push domains (`g.whatsapp.net`), delivering instant notifications even in Deep Doze mode.
@@ -42,12 +69,8 @@ Explore the full interactive system architecture, component relationships, and d
 
 ---
 
-## 🚀 Building & Releases
+## 🚀 Building from Source
 
-### Download Release APK
-Get the latest pre-compiled signed APK from the [GitHub Releases Page](https://github.com/FardeenSayyed/NetShield/releases).
-
-### Build from Source
 ```bash
 git clone https://github.com/FardeenSayyed/NetShield.git
 cd NetShield
